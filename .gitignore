@@ -1,2 +1,7 @@
 /target
 /src/.temp
+
+
+# asm target files
+/src/a.out
+/src/random.o
