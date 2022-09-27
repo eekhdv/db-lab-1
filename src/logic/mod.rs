@@ -34,8 +34,8 @@ pub mod tablmgr {
     use std::path::Path;
 
     #[allow(dead_code)]
-    pub fn add(_tbl: String, data: String) -> Result<(), std::io::Error> {
-        let path = format!("../../static_data/{}.txt", _tbl);
+    pub fn add(_fldr: String, _tbl: String, data: String) -> Result<(), std::io::Error> {
+        let path = format!("../../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let file = OpenOptions::new()
@@ -50,8 +50,13 @@ pub mod tablmgr {
     }
 
     #[allow(dead_code)]
-    pub fn edit(_tbl: String, id: u32, new_data: String) -> Result<(), std::io::Error> {
-        let path = format!("../../static_data/{}.txt", _tbl);
+    pub fn edit(
+        _fldr: String,
+        _tbl: String,
+        id: u32,
+        new_data: String,
+    ) -> Result<(), std::io::Error> {
+        let path = format!("../../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let mut src = File::open(output).expect("[ERROR] unable to open file");
@@ -76,8 +81,8 @@ pub mod tablmgr {
     }
 
     #[allow(dead_code)]
-    pub fn del(_tbl: String, id: u64) -> String {
-        let path = format!("../../static_data/{}.txt", _tbl);
+    pub fn del(_fldr: String, _tbl: String, id: u64) -> String {
+        let path = format!("../../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let mut src = File::open(output).expect("[ERROR] unable to open file");
@@ -105,8 +110,8 @@ pub mod tablmgr {
     }
 
     #[allow(dead_code)]
-    pub fn print(_tbl: String, id: u32) -> String {
-        let path = format!("../../static_data/{}.txt", _tbl);
+    pub fn print(_fldr: String, _tbl: String, id: u32) -> String {
+        let path = format!("../../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let mut src = File::open(output).expect("[ERROR] unable to open file");
@@ -123,10 +128,64 @@ pub mod tablmgr {
             .replace(",", " ")
             .to_string()
     }
+
+    #[allow(dead_code)]
+    pub fn create(name: String, access: char) -> File {
+        let path = format!("../../generated_tables/{}.txt", name);
+        let new_tbl = Path::new(path.as_str());
+
+        let created_file = match access {
+            'r' => File::options().read(true).create(true).open(new_tbl),
+            'w' => File::options()
+                .read(true)
+                .write(true)
+                .create(true)
+                .open(new_tbl),
+            'a' => File::options()
+                .read(true)
+                .append(true)
+                .write(true)
+                .create(true)
+                .open(new_tbl),
+            _ => File::open("failed"),
+        };
+        created_file.expect("[ERROR] failed to open file")
+    }
 }
 
-//pub mod tablgen {
-//    fn gen_test_table() {}
-//
-//    fn print_data_distr() {}
-//}
+pub mod tablgen {
+    use std::fs::File;
+    use std::io::{Read, Write};
+    use std::path::Path;
+    use std::str::FromStr;
+
+    use super::{randi64, tablmgr};
+
+    #[allow(dead_code)]
+    pub fn gen_test_table() {
+        let gen_table_name =
+            String::from_str("testing_table.txt").expect("[ERROR] failed migration to &str");
+
+        let path = format!("../../static_data/names.txt");
+        let output = Path::new(path.as_str());
+
+        let mut src = File::open(output).expect("[ERROR] unable to open file!");
+        let mut lines = String::new();
+
+        if let Err(e) = src.read_to_string(&mut lines) {
+            eprintln!("[ERROR] {}", e);
+        }
+
+        let mut gen_table = tablmgr::create(gen_table_name, 'a');
+
+        for i in 1..lines.split('\n').count() {
+            let data = format!("{} {}\n", i, randi64::asm_random(12));
+            gen_table
+                .write(data.as_bytes())
+                .expect("[ERROR] failed to write file!");
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn print_data_distr() {}
+}
