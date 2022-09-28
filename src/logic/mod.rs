@@ -35,7 +35,7 @@ pub mod tablmgr {
 
     #[allow(dead_code)]
     pub fn add(_fldr: String, _tbl: String, data: String) -> Result<(), std::io::Error> {
-        let path = format!("../../{}/{}.txt", _fldr, _tbl);
+        let path = format!("../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let file = OpenOptions::new()
@@ -56,7 +56,7 @@ pub mod tablmgr {
         id: u32,
         new_data: String,
     ) -> Result<(), std::io::Error> {
-        let path = format!("../../{}/{}.txt", _fldr, _tbl);
+        let path = format!("../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let mut src = File::open(output).expect("[ERROR] unable to open file");
@@ -82,7 +82,7 @@ pub mod tablmgr {
 
     #[allow(dead_code)]
     pub fn del(_fldr: String, _tbl: String, id: u64) -> String {
-        let path = format!("../../{}/{}.txt", _fldr, _tbl);
+        let path = format!("../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let mut src = File::open(output).expect("[ERROR] unable to open file");
@@ -111,7 +111,7 @@ pub mod tablmgr {
 
     #[allow(dead_code)]
     pub fn print(_fldr: String, _tbl: String, id: u32) -> String {
-        let path = format!("../../{}/{}.txt", _fldr, _tbl);
+        let path = format!("../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
         let mut src = File::open(output).expect("[ERROR] unable to open file");
@@ -131,7 +131,7 @@ pub mod tablmgr {
 
     #[allow(dead_code)]
     pub fn create(name: String, access: char) -> File {
-        let path = format!("../../generated_tables/{}.txt", name);
+        let path = format!("../generated_tables/{}.txt", name);
         let new_tbl = Path::new(path.as_str());
 
         let created_file = match access {
@@ -164,9 +164,9 @@ pub mod tablgen {
     #[allow(dead_code)]
     pub fn gen_test_table() {
         let gen_table_name =
-            String::from_str("testing_table.txt").expect("[ERROR] failed migration to &str");
+            String::from_str("testing_table").expect("[ERROR] failed migration to &str");
 
-        let path = format!("../../static_data/names.txt");
+        let path = format!("../static_data/names.txt");
         let output = Path::new(path.as_str());
 
         let mut src = File::open(output).expect("[ERROR] unable to open file!");
@@ -186,6 +186,9 @@ pub mod tablgen {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn print_data_distr() {}
+    /* #[allow(dead_code)]
+     * pub fn print_data_distr() {
+
+     * }
+    */
 }
