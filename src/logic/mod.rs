@@ -31,24 +31,22 @@ pub mod randi64 {
 }
 
 pub mod tablmgr {
-    use std::fs::{write, File, OpenOptions};
+    use std::fs::File;
     use std::io::{Read, Write};
     use std::path::Path;
 
     #[allow(dead_code)]
-    pub fn add(_fldr: String, _tbl: String, data: String) -> Result<(), std::io::Error> {
+    pub fn add(_fldr: String, _tbl: String, data: String) -> Result<usize, std::io::Error> {
         let path = format!("../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
-        let file = OpenOptions::new()
-            .append(true)
-            .open(output)
-            .expect("[ERROR] unable to open file");
+        let mut file = match File::options().read(true).append(true).open(output) {
+            Ok(file) => file,
+            Err(e) => return Err(e),
+        };
         let new_data = data.trim().replace(" ", ",");
 
-        write(output, new_data).expect("[ERROR] unable to wirte file");
-        drop(file);
-        Ok(())
+        file.write(new_data.as_bytes())
     }
 
     #[allow(dead_code)]
@@ -146,7 +144,6 @@ pub mod tablmgr {
             'a' => File::options()
                 .read(true)
                 .append(true)
-                .write(true)
                 .create(true)
                 .open(new_tbl),
             _ => File::open("failed"),
@@ -193,4 +190,12 @@ pub mod tablmgr {
 //
 //      * }
 //     */
+// }
+
+// mod tabltools {
+//     use std::fs::File;
+//
+//     pub(super) fn uniq_check(file: File, data: String) -> bool {
+//         true
+//     }
 // }
