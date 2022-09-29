@@ -61,18 +61,27 @@ pub mod tablmgr {
         _tbl: String,
         id: u32,
         new_data: String,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<usize, std::io::Error> {
         let path = format!("../{}/{}.txt", _fldr, _tbl);
         let output = Path::new(path.as_str());
 
-        let mut src = File::open(output).expect("[ERROR] unable to open file");
+        let mut src = match File::open(output) {
+            Ok(src) => src,
+            Err(e) => return Err(e),
+        };
+
         let mut old_lines = String::new();
         if let Err(e) = src.read_to_string(&mut old_lines) {
             eprintln!("[ERROR] {}", e);
         }
+
+        if !tabltools::uniq_check(&mut src, &new_data.replace(" ", ",")) {
+            return Ok(0); // means that file opened but no lines edited
+        }
+
         drop(src);
 
-        let new_line = old_lines.replace(
+        let new_lines = old_lines.replace(
             old_lines
                 .split('\n')
                 .collect::<Vec<_>>()
@@ -80,10 +89,12 @@ pub mod tablmgr {
                 .expect("[ERROR] element with this id doesn't exist"),
             &new_data.replace(" ", ","),
         );
-        let mut dst = File::open(output).expect("[ERROR] unable to open file");
-        dst.write(new_line.as_bytes())
-            .expect("[ERROR] unable write to the file");
-        Ok(())
+        let mut dst = match File::open(output) {
+            Ok(dst) => dst,
+            Err(e) => return Err(e),
+        };
+
+        dst.write(new_lines.as_bytes())
     }
 
     #[allow(dead_code)]
