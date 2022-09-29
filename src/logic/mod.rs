@@ -153,42 +153,42 @@ pub mod tablmgr {
     }
 }
 
-pub mod tablgen {
-    use std::fs::File;
-    use std::io::{Read, Write};
-    use std::path::Path;
-    use std::str::FromStr;
-
-    use super::{randi64, tablmgr};
-
-    // #[allow(dead_code)]
-    // pub fn gen_test_table() {
-    //     let gen_table_name =
-    //         String::from_str("testing_table").expect("[ERROR] failed migration to &str");
-
-    //     let path = format!("../static_data/names.txt");
-    //     let output = Path::new(path.as_str());
-
-    //     let mut src = File::open(output).expect("[ERROR] unable to open file!");
-    //     let mut lines = String::new();
-
-    //     if let Err(e) = src.read_to_string(&mut lines) {
-    //         eprintln!("[ERROR] {}", e);
-    //     }
-
-    //     let mut gen_table = tablmgr::create(gen_table_name, 'a');
-
-    //     for i in 1..lines.split('\n').count() {
-    //         let data = format!("{},{}\n", i, randi64::asm_random(12));
-    //         gen_table
-    //             .write(data.as_bytes())
-    //             .expect("[ERROR] failed to write file!");
-    //     }
-    // }
-
-    /* #[allow(dead_code)]
-     * pub fn print_data_distr() {
-
-     * }
-    */
-}
+// pub mod tablgen {
+//     use std::fs::File;
+//     use std::io::{Read, Write};
+//     use std::path::Path;
+//     use std::str::FromStr;
+//
+//     use super::{randi64, tablmgr};
+//
+//     #[allow(dead_code)]
+//     pub fn gen_test_table() {
+//         let gen_table_name =
+//             String::from_str("testing_table").expect("[ERROR] failed migration to &str");
+//
+//         let path = format!("../static_data/names.txt");
+//         let output = Path::new(path.as_str());
+//
+//         let mut src = File::open(output).expect("[ERROR] unable to open file!");
+//         let mut lines = String::new();
+//
+//         if let Err(e) = src.read_to_string(&mut lines) {
+//             eprintln!("[ERROR] {}", e);
+//         }
+//
+//         let mut gen_table = tablmgr::create(gen_table_name, 'a');
+//
+//         for i in 1..lines.split('\n').count() {
+//             let data = format!("{},{}\n", i, randi64::asm_random(12));
+//             gen_table
+//                 .write(data.as_bytes())
+//                 .expect("[ERROR] failed to write file!");
+//         }
+//     }
+//
+//     /* #[allow(dead_code)]
+//      * pub fn print_data_distr() {
+//
+//      * }
+//     */
+// }
