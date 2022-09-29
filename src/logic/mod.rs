@@ -35,6 +35,8 @@ pub mod tablmgr {
     use std::io::{Read, Write};
     use std::path::Path;
 
+    use super::tabltools;
+
     #[allow(dead_code)]
     pub fn add(_fldr: String, _tbl: String, data: String) -> Result<usize, std::io::Error> {
         let path = format!("../{}/{}.txt", _fldr, _tbl);
@@ -44,7 +46,11 @@ pub mod tablmgr {
             Ok(file) => file,
             Err(e) => return Err(e),
         };
+
         let new_data = data.trim().replace(" ", ",");
+        if !tabltools::uniq_check(&mut file, &new_data) {
+            return Ok(0); // means that 0 bytes was writen
+        }
 
         file.write(new_data.as_bytes())
     }
@@ -192,10 +198,17 @@ pub mod tablmgr {
 //     */
 // }
 
-// mod tabltools {
-//     use std::fs::File;
-//
-//     pub(super) fn uniq_check(file: File, data: String) -> bool {
-//         true
-//     }
-// }
+mod tabltools {
+    use std::{fs::File, io::Read};
+
+    pub(super) fn uniq_check(file: &mut File, data: &str) -> bool {
+        let mut buf = String::new();
+        file.read_to_string(&mut buf).unwrap();
+        for i in buf.split('\n').into_iter() {
+            if i.eq(data) {
+                return false;
+            }
+        }
+        true
+    }
+}
