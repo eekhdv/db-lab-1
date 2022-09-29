@@ -5,6 +5,7 @@ pub mod randi64 {
 
     global_asm!(include_str!("random.asm"));
 
+    #[allow(dead_code)]
     extern "sysv64" {
         fn system_rand(seed: i64, module: i32) -> i64;
     }
@@ -16,6 +17,7 @@ pub mod randi64 {
     //     fn win64_rand(seed: i64) -> i64;
     // }
 
+    #[allow(dead_code)]
     pub fn asm_random(module: i32) -> u32 {
         let seed = rand::random::<i64>();
         let prime: u32 = 289035269;
