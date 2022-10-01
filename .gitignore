@@ -2,6 +2,9 @@
 /src/.temp
 Cargo.lock
 
+# generated files
+/generated_tables/*
+
 # asm target files
 /src/a.out
 /src/random.o
