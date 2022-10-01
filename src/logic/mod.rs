@@ -26,7 +26,7 @@ pub mod randi64 {
         unsafe {
             res = system_rand(seed, module);
         }
-        res as u32 % prime
+        res as u32 % prime + 1
     }
 }
 
