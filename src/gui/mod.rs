@@ -59,7 +59,7 @@ pub mod tablgui {
         }
     }
 
-    fn get_table_name(file_name: String) -> String {
+    pub fn get_table_name(file_name: String) -> String {
         file_name
             .replace(".txt", "")
             .split("_")
