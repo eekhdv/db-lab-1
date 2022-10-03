@@ -26,7 +26,7 @@ pub mod randi64 {
         unsafe {
             res = system_rand(seed, module);
         }
-        res as u32 % prime
+        res as u32 % prime + 1
     }
 }
 
@@ -151,6 +151,11 @@ pub mod tablmgr {
         let path = format!("../generated_tables/{}.txt", name);
         let new_tbl = Path::new(path.as_str());
 
+        match std::fs::remove_file(new_tbl) {
+            Ok(()) => eprintln!("[INFO] File {path} deleted!"),
+            Err(_) => eprint!(""),
+        };
+
         let created_file = match access {
             'r' => File::options().read(true).create(true).open(new_tbl),
             'w' => File::options()
@@ -167,13 +172,26 @@ pub mod tablmgr {
         };
         created_file.expect("[ERROR] failed to open file")
     }
+
+    pub fn clean() -> Result<(), std::io::Error> {
+        for file_name in ["testing_table", ".temp"] {
+            if let Err(e) =
+                std::fs::remove_file(format!("../generated_tables/{}.txt", file_name).as_str())
+            {
+                return Err(e);
+            }
+        }
+        Ok(())
+    }
 }
 
 pub mod tablgen {
-    use std::fs::File;
-    use std::io::{Read, Write};
-    use std::path::Path;
-    use std::str::FromStr;
+    use std::{
+        fs::File,
+        io::{Read, Write},
+        path::Path,
+        str::FromStr,
+    };
 
     use super::{randi64, tablmgr};
 
@@ -182,10 +200,9 @@ pub mod tablgen {
         let gen_table_name =
             String::from_str("testing_table").expect("[ERROR] failed migration to &str");
 
-        let path = format!("../static_data/names.txt");
-        let output = Path::new(path.as_str());
+        let output = Path::new("../static_data/names.txt");
 
-        let mut src = File::open(output).expect("[ERROR] unable to open file!");
+        let mut src = File::open(output).expect("Open file {output}");
         let mut lines = String::new();
 
         if let Err(e) = src.read_to_string(&mut lines) {
@@ -193,20 +210,15 @@ pub mod tablgen {
         }
 
         let mut gen_table = tablmgr::create(gen_table_name, 'a');
+        gen_table.write("stdnt_id,var_id\n".as_bytes()).unwrap();
 
-        for i in 1..lines.split('\n').count() {
+        for i in 1..lines.replace("\r", "").split('\n').count() - 1 {
             let data = format!("{},{}\n", i, randi64::asm_random(12));
             gen_table
                 .write(data.as_bytes())
                 .expect("[ERROR] failed to write file!");
         }
     }
-
-    /* #[allow(dead_code)]
-     * pub fn print_data_distr() {
-
-     * }
-    */
 }
 
 mod tabltools {
