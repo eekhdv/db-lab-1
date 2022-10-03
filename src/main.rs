@@ -1,3 +1,6 @@
+extern crate chrono;
+use chrono::offset::Utc;
+use chrono::DateTime;
 use colored::Colorize;
 use eframe::egui::TextBuffer;
 use enums::{Keys, Menus};
@@ -56,7 +59,10 @@ fn main() {
                 log = format!("{}", get_tables_list(tables));
             }
             Keys::BackupTablKey => {
-                current_menu = Menus::Backup;
+                current_menu = Menus::Backup {
+                    tables_list: tables,
+                    backup_path: "../backups/".to_string(),
+                };
             }
             Keys::GenTestTablKey => {
                 logic::tablgen::gen_test_table();
@@ -246,7 +252,10 @@ fn menu_to_show(menus: Menus, log: String) -> Keys {
             }
             return Keys::MainMenuKey;
         }
-        Menus::Backup => {
+        Menus::Backup {
+            tables_list: tables,
+            backup_path: path,
+        } => {
             println!(
                 "{:30}",
                 "Do you want to make Backup? (y/n)"
@@ -261,8 +270,27 @@ fn menu_to_show(menus: Menus, log: String) -> Keys {
             std::io::stdin().read_line(&mut res).unwrap();
 
             match res.as_str().replace("\n", "").to_lowercase().as_str() {
-                "y" | "yes" => {}
-                "n" | "no" => {}
+                "y" | "yes" => {
+                    let timenow: DateTime<Utc> = std::time::SystemTime::now().into();
+                    for i in tables {
+                        let time = timenow.format("%d-%m-%Y-%H:%M");
+                        std::fs::copy(
+                            format!("../generated_tables/{}", i),
+                            format!("{}{}-{}", path, time, i),
+                        )
+                        .unwrap();
+                    }
+
+                    println!("{}", "Backup successfully done!".green().on_black());
+
+                    print!("Press any key to continue...");
+                    std::io::stdout().flush().unwrap();
+
+                    std::io::stdin().read_line(&mut res).unwrap();
+                }
+                "n" | "no" => {
+                    return Keys::MainMenuKey;
+                }
                 _ => return Keys::BackupTablKey,
             }
         }

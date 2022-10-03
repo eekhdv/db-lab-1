@@ -8,7 +8,10 @@ pub enum Menus {
         tables_list: Vec<String>,
     },
     Create,
-    Backup,
+    Backup {
+        tables_list: Vec<String>,
+        backup_path: String,
+    },
     Delete {
         tables_list: Vec<String>,
     },
