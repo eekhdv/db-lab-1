@@ -1,4 +1,11 @@
-use std::{collections::VecDeque, fs::File, io::Read, path::Path};
+mod logic;
+use std::{
+    collections::VecDeque,
+    fs::File,
+    io::{Read, Write},
+    num::ParseIntError,
+    path::Path,
+};
 
 use eframe::{
     egui::{Context, Grid, TopBottomPanel, Ui, Window},
@@ -10,6 +17,7 @@ fn main() {
     println!("Enter qwerty");
     std::io::stdin().read_line(&mut line).unwrap();
     if line.replace("\n", "").eq("qwerty") {
+        // logic::tablgen::gen_test_table();
         let options = eframe::NativeOptions::default();
         eframe::run_native(
             "Informational table",
@@ -41,49 +49,55 @@ impl eframe::App for MyApp {
             ));
         });
 
-        Window::new("My Window").vscroll(true).show(ctx, |ui| {
-            let buf_names = full_names.split("\n");
+        Window::new("Test table window")
+            .vscroll(true)
+            .show(ctx, |ui| {
+                let mut temp_file = logic::tablmgr::create(".temp".to_string(), 'a');
 
-            let mut rows: VecDeque<Vec<String>> = VecDeque::new();
-            for i in buf_names {
-                let mut inner_vec: Vec<String> = Vec::new();
-                for j in i.split(",") {
-                    inner_vec.push(j.to_string());
+                let buf_names = full_names.split("\n");
+                let buf_tests = buf.split("\n");
+
+                let mut data1 = buf_names.clone().into_iter();
+                let mut data2 = buf_tests.clone().into_iter();
+
+                let mut rows: VecDeque<Vec<String>> = VecDeque::new();
+
+                let length = buf_tests.count();
+                for _ in 0..length - 1 {
+                    let data2write = format!(
+                        "{},{}\n",
+                        data1.next().unwrap().replace("\r", ""),
+                        data2.next().unwrap()
+                    );
+                    temp_file.write(data2write.as_bytes()).unwrap();
                 }
-                rows.push_back(inner_vec);
-            }
-            table_test_grid(ui, rows);
-        });
+
+                let mut temp_data = String::new();
+                File::open(std::path::Path::new("../generated_tables/.temp.txt"))
+                    .unwrap()
+                    .read_to_string(&mut temp_data)
+                    .unwrap();
+
+                for i in temp_data.split("\n") {
+                    let mut inner_vec: Vec<String> = Vec::new();
+                    for j in i.split(',') {
+                        inner_vec.push(j.to_string());
+                    }
+                    rows.push_back(inner_vec);
+                }
+
+                // for i in buf_tests {
+                //     let mut var: String = String::new();
+                //     match i.split(',').nth(1) {
+                //         Some(x) => var = x.to_string(),
+                //         None => println!("[ERROR]"),
+                //     }
+                //     test_vars.push_back(var);
+                // }
+                table_test_grid(ui, rows);
+            });
     }
 }
-/* CentralPanel::default().show(ctx, |ui| {
-    let buf_names = full_names.split("\n");
-    // let buf_lines = buf.split("\n").into_iter();
-
-    let text_style = TextStyle::Body;
-    let row_height = ui.text_style_height(&text_style);
-    let total_rows = buf_names.clone().into_iter().count();
-
-    // let mut buf_full_names = ;
-
-    ScrollArea::vertical().show_rows(ui, row_height, total_rows, |ui, row_range| {
-        let mut rows: Vec<Vec<String>> = Vec::new();
-        for i in buf_names {
-            let mut inner_vec: Vec<String> = Vec::new();
-            for j in i.split(",") {
-                inner_vec.push(j.to_string());
-            }
-            rows.push(inner_vec);
-        }
-        table_test_grid(ui, rows, row_range);
-        // for row in row_range {
-        //     let text = format!("Row {}/{}", row + 1, total_rows);
-        //     ui.label(text);
-        //     ui.end_row();
-        // }
-        // TODO: show_rows
-    });
-});*/
 
 fn get_table_name(file_name: String) -> String {
     file_name
@@ -100,77 +114,23 @@ fn get_table_name(file_name: String) -> String {
         .collect::<String>()
 }
 
-pub fn table_test_grid(ui: &mut Ui, mut rows: VecDeque<Vec<String>>) {
+fn table_test_grid(ui: &mut Ui, mut rows: VecDeque<Vec<String>>) {
     Grid::spacing(Grid::new("general_table"), Vec2::new(10.0, 1.0)).show(ui, |ui| {
+        ui.heading("id");
+
+        let mut counter = 1;
         for item in rows.pop_front().unwrap() {
             ui.heading(item);
         }
         ui.end_row();
+
         for row in rows {
+            ui.label(counter.to_string());
             for item in row {
                 ui.label(item);
             }
             ui.end_row();
+            counter += 1;
         }
     });
 }
-// let mut buf_full_names = ;
-// let row_height = ui.spacing().interact_size.y; // if you are adding buttons instead of labels.
-
-/* let mut buf_lines = buf.split("\n").into_iter();
-* let mut buf_names = full_names.split("\n").into_iter();
-* // let mut buf_full_names = ;
-* for i in buf_names.next().unwrap().split(",") {
-*     ui.heading(i);
-* }
-* ui.heading(buf_lines.next().unwrap().split(",").nth(1).unwrap());
-* ui.end_row();
-
-* // TODO: printing to gui
-
-* for i in buf_lines {
-*     // i => stdnt_id , vrnt_id
-*     // let stdnt_id = i
-*     //     .split(",")
-*     //     .nth(0)
-*     //     .unwrap()
-*     //     .to_string()
-*     //     .parse::<usize>()
-*     //     .unwrap();
-*     let mut a = buf_names.next();
-*     if a != None {
-*         ui.label(a.unwrap());
-*     }
-*     // let full_name = buf_names
-*     //     .nth(qq.nth(0).unwrap().to_string().parse::<usize>().unwrap())
-*     //     .unwrap();
-*     // for k in full_name.split(",").into_iter() {
-*     //     ui.label(k);
-*     // }
-*     // ui.verticaj_centered(|ui| {
-*     //     // ui.jabel(buf_full_names.next().unwrap());
-*     //     // ui.label(buf_full_names.next().unwrap());
-*     //     // ui.label(buf_full_names.next().unwrap());
-*     //     ui.label(j);
-*     // });
-*     // ui.label(j);
-*     // ui.label(qq.nth(1).unwrap());
-*     ui.end_row();
-* }
-*/
-
-// ui.label("First row, first column");
-// ui.label("First row, second column");
-// ui.end_row();
-
-// ui.label("Second row, first column");
-// ui.label("Second row, second column");
-// ui.label("Second row, third column");
-// ui.end_row();
-
-// ui.horizontal(|ui| {
-//     ui.label("Same");
-//     ui.label("cell");
-// });
-// ui.label("Third row, second column");
-// ui.end_row();
