@@ -51,7 +51,7 @@ pub mod tablgui {
                         rows.push_back(inner_vec);
                     }
                     match std::fs::remove_file(temp_path) {
-                        Ok(()) => eprintln!("[INFO] Clear temp files"),
+                        Ok(()) => (),
                         Err(_) => eprintln!("[ERROR] OMG! What happens?"),
                     };
                     table_test_grid(ui, rows);
