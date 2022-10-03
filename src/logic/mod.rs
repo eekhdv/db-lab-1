@@ -173,6 +173,13 @@ pub mod tablmgr {
         created_file.expect("[ERROR] failed to open file")
     }
 
+    pub fn delete(name: String) -> Result<(), std::io::Error> {
+        let path = format!("../generated_tables/{}", name);
+        let del_tbl = Path::new(path.as_str());
+
+        std::fs::remove_file(del_tbl)
+    }
+
     pub fn clean() -> Result<(), std::io::Error> {
         for file_name in ["testing_table", ".temp"] {
             if let Err(e) =
