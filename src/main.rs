@@ -1,4 +1,5 @@
 use colored::Colorize;
+use eframe::egui::{Key, TextBuffer};
 use std::io::Write;
 
 mod gui;
@@ -14,29 +15,40 @@ enum Menus {
         tables_list: Vec<String>,
     },
     Create,
-    Delete,
+    Backup,
+    Delete {
+        tables_list: Vec<String>,
+    },
+    Unknown,
+}
+
+enum Keys {
+    MainMenuKey,
+    CreateTablKey,
+    DeleteTablKey,
+    BackupTablKey,
+    EditTablKey,
+    TablListKey,
+    GenTestTablKey,
+    PrintKey,
+    ExitKey,
+    UnknownKey,
+}
+
+impl Menus {
+    fn new() -> Menus {
+        Menus::Unknown
+    }
 }
 
 fn main() {
     let mut generated = false;
     let mut log = String::new();
-    let mut buf;
+    let mut current_key = Keys::MainMenuKey;
+    let mut current_menu = Menus::new();
+
     loop {
         let mut tables: Vec<String> = Vec::new();
-        let mut current_menu = Menus::Main {
-            is_test_generated: generated,
-            text: vec![
-                "1. Create table.",
-                "2. Delete table.",
-                "3. Edit table.",
-                "4. Table list.",
-                "-------------------------",
-                "8. Generate testing table.",
-                "9. Print testing table.",
-                "-------------------------",
-                "10. Exit (or q).",
-            ],
-        };
 
         let paths = std::fs::read_dir("../generated_tables/").unwrap();
         for path in paths {
@@ -44,24 +56,52 @@ fn main() {
                 path.unwrap().file_name().into_string().unwrap(),
             ));
         }
-        buf = menu_to_show(current_menu.clone(), log.clone());
-        println!("{}", buf);
-        match buf.replace("\n", "").to_lowercase().as_str() {
-            "1" => (),
-            "2" => (),
-            "3" => {}
-            "4" => {
+        match current_key {
+            Keys::MainMenuKey => {
+                current_menu = Menus::Main {
+                    is_test_generated: generated,
+                    text: vec![
+                        "1. Create table.",
+                        "2. Delete table.",
+                        "3. Edit table.",
+                        "4. Table list.",
+                        "5. Backup menu",
+                        "-------------------------",
+                        "8. Generate testing table.",
+                        "9. Print testing table.",
+                        "-------------------------",
+                        "10. Exit (or q).",
+                    ],
+                };
+            }
+            Keys::CreateTablKey => current_menu = Menus::Create,
+            Keys::DeleteTablKey => {
+                current_menu = Menus::Delete {
+                    tables_list: tables,
+                };
+            }
+            Keys::EditTablKey => {
+                current_menu = Menus::Edit {
+                    tables_list: tables,
+                };
+            }
+            Keys::TablListKey => {
                 log = format!("{}", get_tables_list(tables));
             }
-            "8" => {
+            Keys::BackupTablKey => {
+                current_menu = Menus::Backup;
+            }
+            Keys::GenTestTablKey => {
                 generated = true;
                 logic::tablgen::gen_test_table();
                 log = format!(
                     "{:30}",
                     "TESTING TABLE GENERATED!".bold().green().on_black()
                 );
+                current_key = Keys::MainMenuKey;
+                continue;
             }
-            "9" => {
+            Keys::PrintKey => {
                 if generated {
                     logic::tablmgr::create(".temp".to_string(), 'a');
                     let options = eframe::NativeOptions::default();
@@ -72,7 +112,7 @@ fn main() {
                     );
                 }
             }
-            "10" | "q" | "exit" => {
+            Keys::ExitKey => {
                 match logic::tablmgr::clean() {
                     Ok(()) => (),
                     Err(_) => (),
@@ -83,12 +123,14 @@ fn main() {
                 log = format!("{:30}", "TRY ONE MORE TIME!".bold().bright_red().on_black());
             }
         };
+        current_key = menu_to_show(current_menu.clone(), log.clone());
     }
 }
 
 fn get_tables_list(tables: Vec<String>) -> String {
     let mut log;
     let mut counter = 0;
+
     if tables.is_empty() {
         log = format!(
             "{:30}",
@@ -107,17 +149,17 @@ fn get_tables_list(tables: Vec<String>) -> String {
     log
 }
 
-fn menu_to_show(menus: Menus, log: String) -> String {
+fn menu_to_show(menus: Menus, log: String) -> Keys {
     print!("{}[2J", 27 as char);
     let mut res = String::new();
+
     match menus {
         Menus::Main {
             is_test_generated: generated,
             text: text_print,
         } => {
-            // let mut buf = String::new();
             for i in text_print {
-                if i.eq("9. Print testing table.") {
+                if i.split(".").nth(0).unwrap().as_str() == "9" {
                     if generated {
                         println!("{}", i);
                     }
@@ -125,32 +167,133 @@ fn menu_to_show(menus: Menus, log: String) -> String {
                     println!("{}", i);
                 }
             }
-            // println!("1. Create table.");
-            // println!("2. Delete table.");
-            // println!("3. Edit table.");
-            // println!("4. table list.");
-            // println!("-------------------------");
-            // println!("8. Generate testing table.");
-            // if generated {
-            //     println!("9. Print testing table.");
-            // }
-            // println!("-------------------------");
-            // println!("10. Exit (or q).");
-            // println!("{}", log);
-
+            println!("{}", log);
             print!("> ");
             std::io::stdout().flush().unwrap();
 
             std::io::stdin().read_line(&mut res).unwrap();
+            match res.as_str().replace("\n", "").to_lowercase().as_str() {
+                "1" => return Keys::CreateTablKey,
+                "2" => return Keys::DeleteTablKey,
+                "3" => return Keys::EditTablKey,
+                "4" => return Keys::TablListKey,
+                "5" => return Keys::BackupTablKey,
+                "8" => return Keys::GenTestTablKey,
+                "9" => return Keys::PrintKey,
+                "10" | "q" | "exit" => return Keys::ExitKey,
+                _ => return Keys::UnknownKey,
+            }
         }
         Menus::Edit {
             tables_list: tables,
         } => {
             println!("Choose which table do you want to edit?");
             println!("{}", get_tables_list(tables));
+
+            print!("> ");
+            std::io::stdout().flush().unwrap();
+
+            std::io::stdin().read_line(&mut res).unwrap();
+            // TODO: Edit
         }
-        Menus::Create => (),
-        Menus::Delete => (),
+        Menus::Create => {
+            println!(
+                "{:30}",
+                "Enter new table's name:".bright_blue().bold().on_black()
+            );
+
+            print!("> ");
+            std::io::stdout().flush().unwrap();
+
+            std::io::stdin().read_line(&mut res).unwrap();
+            let tabl_name = res
+                .to_lowercase()
+                .as_str()
+                .replace(" ", "_")
+                .as_str()
+                .replace("\n", "");
+
+            logic::tablmgr::create(tabl_name.clone(), 'r');
+            println!(
+                "{:30} {}{}",
+                "Table",
+                tabl_name,
+                "created successfully!".green().bold().on_black()
+            );
+            return Keys::MainMenuKey;
+        }
+        Menus::Delete {
+            tables_list: tables,
+        } => {
+            println!(
+                "{:30}",
+                "Choose number which table do you want to DELETE? (or c for cancel)"
+                    .bright_red()
+                    .bold()
+                    .on_black()
+            );
+            println!("{}", get_tables_list(tables.clone()));
+
+            print!("> ");
+            std::io::stdout().flush().unwrap();
+
+            std::io::stdin().read_line(&mut res).unwrap();
+
+            let delete_option = res.to_lowercase().as_str().replace("\n", "");
+            if delete_option.eq("c") {
+                println!(
+                    "{:30}",
+                    "Deleting canceled successfully!".green().bold().on_black()
+                );
+            } else {
+                let index: usize = match delete_option.parse() {
+                    Ok(a) => a,
+                    Err(_) => {
+                        println!("{:30}", "Error while deleting".red().bold().on_black());
+                        return Keys::DeleteTablKey;
+                    }
+                };
+                let del_table_name = tables
+                    .get(index)
+                    .unwrap()
+                    .as_str()
+                    .replace(" ", "_")
+                    .to_lowercase()
+                    .to_string();
+                match logic::tablmgr::delete(del_table_name) {
+                    Ok(()) => return Keys::MainMenuKey,
+                    Err(_) => {
+                        println!("{:30}", "Error while deleting".red().bold().on_black());
+                        return Keys::DeleteTablKey;
+                    }
+                }
+            }
+            return Keys::MainMenuKey;
+        }
+        Menus::Backup => {
+            println!(
+                "{:30}",
+                "Do you want to make Backup? (y/n)"
+                    .bright_yellow()
+                    .bold()
+                    .on_black()
+            );
+
+            print!("> ");
+            std::io::stdout().flush().unwrap();
+
+            std::io::stdin().read_line(&mut res).unwrap();
+
+            match res.as_str().replace("\n", "").to_lowercase().as_str() {
+                "y" | "yes" => {}
+                "n" | "no" => {}
+                _ => return Keys::BackupTablKey,
+            }
+        }
+        Menus::Unknown => {
+            return Keys::UnknownKey;
+        }
     }
-    res
+
+    Keys::MainMenuKey
 }
