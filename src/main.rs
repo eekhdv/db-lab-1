@@ -1,45 +1,11 @@
 use colored::Colorize;
 use eframe::egui::TextBuffer;
+use enums::{Keys, Menus};
 use std::io::Write;
 
+mod enums;
 mod gui;
 mod logic;
-
-#[derive(Clone)]
-enum Menus {
-    Main {
-        is_test_generated: bool,
-        text: Vec<&'static str>,
-    },
-    Edit {
-        tables_list: Vec<String>,
-    },
-    Create,
-    Backup,
-    Delete {
-        tables_list: Vec<String>,
-    },
-    Unknown,
-}
-
-enum Keys {
-    MainMenuKey,
-    CreateTablKey,
-    DeleteTablKey,
-    BackupTablKey,
-    EditTablKey,
-    TablListKey,
-    GenTestTablKey,
-    PrintKey,
-    ExitKey,
-    UnknownKey,
-}
-
-impl Menus {
-    fn new() -> Menus {
-        Menus::Unknown
-    }
-}
 
 fn main() {
     let mut generated;
@@ -208,19 +174,23 @@ fn menu_to_show(menus: Menus, log: String) -> Keys {
 
             std::io::stdin().read_line(&mut res).unwrap();
             let tabl_name = res
+                .as_str()
+                .replace("\n", "")
                 .to_lowercase()
                 .as_str()
-                .replace(" ", "_")
-                .as_str()
-                .replace("\n", "");
+                .replace(" ", "_");
 
-            logic::tablmgr::create(tabl_name.clone(), 'r');
+            logic::tablmgr::create(tabl_name.clone(), 'a');
             println!(
-                "{:30} {}{}",
-                "Table",
-                tabl_name,
-                "created successfully!".green().bold().on_black()
+                "{} {} {}",
+                "Table".green().on_black(),
+                tabl_name.green().bold().on_black(),
+                "created successfully!".green().on_black()
             );
+            print!("Press any key to continue...");
+            std::io::stdout().flush().unwrap();
+
+            std::io::stdin().read_line(&mut res).unwrap();
             return Keys::MainMenuKey;
         }
         Menus::Delete {
@@ -255,9 +225,14 @@ fn menu_to_show(menus: Menus, log: String) -> Keys {
                     }
                 };
                 let del_table_name = tables.get(index).unwrap().to_string();
-                match logic::tablmgr::delete(del_table_name) {
+                match logic::tablmgr::delete(del_table_name.clone()) {
                     Ok(()) => {
-                        println!("{:30}", "Deleted successfully!".green().bold().on_black())
+                        println!(
+                            "{} {} {}",
+                            "Deleted".green().on_black(),
+                            del_table_name.green().bold().on_black(),
+                            "successfully!".green().on_black()
+                        )
                     }
                     Err(_) => {
                         println!("{:30}", "Error while deleting".red().bold().on_black());
