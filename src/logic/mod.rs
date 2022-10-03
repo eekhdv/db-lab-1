@@ -174,9 +174,14 @@ pub mod tablmgr {
     }
 
     pub fn clean() -> Result<(), std::io::Error> {
-        let path = format!("../generated_tables/testing_table.txt");
-        let clean_path = Path::new(path.as_str());
-        std::fs::remove_file(clean_path)
+        for file_name in ["testing_table", ".temp"] {
+            if let Err(e) =
+                std::fs::remove_file(format!("../generated_tables/{}.txt", file_name).as_str())
+            {
+                return Err(e);
+            }
+        }
+        Ok(())
     }
 }
 
@@ -208,7 +213,6 @@ pub mod tablgen {
         gen_table.write("stdnt_id,var_id\n".as_bytes()).unwrap();
 
         for i in 1..lines.replace("\r", "").split('\n').count() - 1 {
-            println!("{}", i);
             let data = format!("{},{}\n", i, randi64::asm_random(12));
             gen_table
                 .write(data.as_bytes())
