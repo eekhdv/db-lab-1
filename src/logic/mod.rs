@@ -153,7 +153,7 @@ pub mod tablmgr {
 
         match std::fs::remove_file(new_tbl) {
             Ok(()) => eprintln!("[INFO] File {path} deleted!"),
-            Err(e) => eprintln!("{}", e),
+            Err(_) => eprint!(""),
         };
 
         let created_file = match access {
@@ -171,6 +171,12 @@ pub mod tablmgr {
             _ => File::open("failed"),
         };
         created_file.expect("[ERROR] failed to open file")
+    }
+
+    pub fn clean() -> Result<(), std::io::Error> {
+        let path = format!("../generated_tables/testing_table.txt");
+        let clean_path = Path::new(path.as_str());
+        std::fs::remove_file(clean_path)
     }
 }
 
@@ -201,7 +207,8 @@ pub mod tablgen {
         let mut gen_table = tablmgr::create(gen_table_name, 'a');
         gen_table.write("stdnt_id,var_id\n".as_bytes()).unwrap();
 
-        for i in 1..lines.split('\n').count() {
+        for i in 1..lines.replace("\r", "").split('\n').count() - 1 {
+            println!("{}", i);
             let data = format!("{},{}\n", i, randi64::asm_random(12));
             gen_table
                 .write(data.as_bytes())
