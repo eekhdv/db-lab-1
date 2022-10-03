@@ -3,7 +3,6 @@ use std::{
     collections::VecDeque,
     fs::File,
     io::{Read, Write},
-    num::ParseIntError,
     path::Path,
 };
 
@@ -17,7 +16,6 @@ fn main() {
     println!("Enter qwerty");
     std::io::stdin().read_line(&mut line).unwrap();
     if line.replace("\n", "").eq("qwerty") {
-        // logic::tablgen::gen_test_table();
         let options = eframe::NativeOptions::default();
         eframe::run_native(
             "Informational table",
@@ -25,6 +23,7 @@ fn main() {
             Box::new(|_cc| Box::new(MyApp)),
         );
     }
+    return;
 }
 
 struct MyApp;
@@ -64,16 +63,19 @@ impl eframe::App for MyApp {
 
                 let length = buf_tests.count();
                 for _ in 0..length - 1 {
+                    let mut _data2 = data2.next().unwrap().split(",").into_iter();
                     let data2write = format!(
-                        "{},{}\n",
+                        "{},{},{}\n",
+                        _data2.next().unwrap(),
                         data1.next().unwrap().replace("\r", ""),
-                        data2.next().unwrap()
+                        _data2.next().unwrap(),
                     );
                     temp_file.write(data2write.as_bytes()).unwrap();
                 }
 
                 let mut temp_data = String::new();
-                File::open(std::path::Path::new("../generated_tables/.temp.txt"))
+                let temp_path = String::from("../generated_tables/.temp.txt");
+                File::open(std::path::Path::new(&temp_path))
                     .unwrap()
                     .read_to_string(&mut temp_data)
                     .unwrap();
@@ -85,15 +87,10 @@ impl eframe::App for MyApp {
                     }
                     rows.push_back(inner_vec);
                 }
-
-                // for i in buf_tests {
-                //     let mut var: String = String::new();
-                //     match i.split(',').nth(1) {
-                //         Some(x) => var = x.to_string(),
-                //         None => println!("[ERROR]"),
-                //     }
-                //     test_vars.push_back(var);
-                // }
+                match std::fs::remove_file(temp_path) {
+                    Ok(()) => eprintln!("[INFO] Clear temp files"),
+                    Err(_) => eprintln!("[ERROR] OMG! What happens?"),
+                };
                 table_test_grid(ui, rows);
             });
     }
@@ -116,21 +113,16 @@ fn get_table_name(file_name: String) -> String {
 
 fn table_test_grid(ui: &mut Ui, mut rows: VecDeque<Vec<String>>) {
     Grid::spacing(Grid::new("general_table"), Vec2::new(10.0, 1.0)).show(ui, |ui| {
-        ui.heading("id");
-
-        let mut counter = 1;
         for item in rows.pop_front().unwrap() {
             ui.heading(item);
         }
         ui.end_row();
 
         for row in rows {
-            ui.label(counter.to_string());
             for item in row {
                 ui.label(item);
             }
             ui.end_row();
-            counter += 1;
         }
     });
 }
