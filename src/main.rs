@@ -16,6 +16,7 @@ fn main() {
     println!("Enter qwerty");
     std::io::stdin().read_line(&mut line).unwrap();
     if line.replace("\n", "").eq("qwerty") {
+        logic::tablgen::gen_test_table();
         let options = eframe::NativeOptions::default();
         eframe::run_native(
             "Informational table",
@@ -23,6 +24,10 @@ fn main() {
             Box::new(|_cc| Box::new(MyApp)),
         );
     }
+    match logic::tablmgr::clean() {
+        Ok(()) => eprintln!("[INFO] Generated tables clean successfully!"),
+        Err(_) => eprintln!("[ERROR] Can't clean generated tables"),
+    };
     return;
 }
 
