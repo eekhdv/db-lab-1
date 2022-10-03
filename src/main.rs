@@ -42,7 +42,7 @@ impl Menus {
 }
 
 fn main() {
-    let mut generated = false;
+    let mut generated;
     let mut log = String::new();
     let mut current_key = Keys::MainMenuKey;
     let mut current_menu = Menus::new();
@@ -54,6 +54,9 @@ fn main() {
         for path in paths {
             tables.push(path.unwrap().file_name().into_string().unwrap());
         }
+
+        generated = is_testing_table_exist();
+
         match current_key {
             Keys::MainMenuKey => {
                 current_menu = Menus::Main {
@@ -90,7 +93,6 @@ fn main() {
                 current_menu = Menus::Backup;
             }
             Keys::GenTestTablKey => {
-                generated = true;
                 logic::tablgen::gen_test_table();
                 log = format!(
                     "{:30}",
@@ -295,4 +297,13 @@ fn menu_to_show(menus: Menus, log: String) -> Keys {
     }
 
     Keys::MainMenuKey
+}
+
+fn is_testing_table_exist() -> bool {
+    match std::fs::File::open(std::path::Path::new(
+        "../generated_tables/testing_table.txt",
+    )) {
+        Ok(_) => return true,
+        Err(_) => return false,
+    };
 }
