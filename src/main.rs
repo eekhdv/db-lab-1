@@ -1,5 +1,5 @@
 use colored::Colorize;
-use eframe::egui::{Key, TextBuffer};
+use eframe::egui::TextBuffer;
 use std::io::Write;
 
 mod gui;
@@ -52,9 +52,7 @@ fn main() {
 
         let paths = std::fs::read_dir("../generated_tables/").unwrap();
         for path in paths {
-            tables.push(gui::tablgui::get_table_name(
-                path.unwrap().file_name().into_string().unwrap(),
-            ));
+            tables.push(path.unwrap().file_name().into_string().unwrap());
         }
         match current_key {
             Keys::MainMenuKey => {
@@ -124,6 +122,7 @@ fn main() {
             }
         };
         current_key = menu_to_show(current_menu.clone(), log.clone());
+        log.clear();
     }
 }
 
@@ -253,20 +252,20 @@ fn menu_to_show(menus: Menus, log: String) -> Keys {
                         return Keys::DeleteTablKey;
                     }
                 };
-                let del_table_name = tables
-                    .get(index)
-                    .unwrap()
-                    .as_str()
-                    .replace(" ", "_")
-                    .to_lowercase()
-                    .to_string();
+                let del_table_name = tables.get(index).unwrap().to_string();
                 match logic::tablmgr::delete(del_table_name) {
-                    Ok(()) => return Keys::MainMenuKey,
+                    Ok(()) => {
+                        println!("{:30}", "Deleted successfully!".green().bold().on_black())
+                    }
                     Err(_) => {
                         println!("{:30}", "Error while deleting".red().bold().on_black());
                         return Keys::DeleteTablKey;
                     }
                 }
+                print!("Press any key to continue...");
+                std::io::stdout().flush().unwrap();
+
+                std::io::stdin().read_line(&mut res).unwrap();
             }
             return Keys::MainMenuKey;
         }
