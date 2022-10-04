@@ -2,6 +2,31 @@ Database Laboratory 1: Playing with tables
 ======
 Generate a table (randomly) using **names.txt** and **variants.txt** in [student_id, variant_id] format.
 
+## Screenshots
+
+<details>
+  <summary>Screenshots</summary>
+  
+  > Main menu:
+  
+   <img src="/../screenshots/main_menu.png" width="512" />
+  
+  > Tables deleting:
+  
+  <img src="/../screenshots/deleting.png" width="512" />
+  
+  > Backup:
+  
+  ![](/../screenshots/backups.png)
+  > Testing table generation (main task):
+  
+  ![](/../screenshots/generate_tt.png)
+  > Graphical table output (using eframe + egui):
+  
+  <img src="/../screenshots/graphical_table.gif" width="512" />
+  
+</details>
+
 ## Usage
 ``` sh
 $ git clone https://github.com/khadievedem/db-lab-1.git
