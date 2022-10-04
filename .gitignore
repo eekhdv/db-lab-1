@@ -8,3 +8,6 @@ Cargo.lock
 # asm target files
 /src/a.out
 /src/random.o
+
+# screenshots
+/screenshots
